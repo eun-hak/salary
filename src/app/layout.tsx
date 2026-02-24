@@ -34,12 +34,21 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     locale: "ko_KR",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "2026년 연봉 실수령액 계산기 - 세후 월급 & 공제 내역",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "2026년 연봉 실수령액 계산기",
     description:
       "최신 4대보험 요율 반영. 연봉별 세후 월급과 공제 내역을 확인하세요.",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -68,6 +77,8 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        <link rel="icon" href="/favicon-512.png" type="image/png" sizes="512x512" />
+        <link rel="apple-touch-icon" href="/favicon-512.png" sizes="180x180" />
         <link
           rel="preconnect"
           href="https://cdn.jsdelivr.net"
