@@ -78,6 +78,11 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1410200096892996"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="bg-gray-50 text-gray-900 font-sans">{children}</body>
     </html>
