@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllAmounts } from "@/lib/salary";
 
-const SITE_URL = "https://salary.plentyer.com";
+const SITE_URL = "https://money.plentyer.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const amounts = getAllAmounts();

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const SITE_URL = "https://salary.plentyer.com";
+const SITE_URL = "https://money.plentyer.com";
 const SITE_NAME = "2026 연봉 실수령액 계산기";
 
 export const metadata: Metadata = {

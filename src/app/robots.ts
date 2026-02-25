@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://salary.plentyer.com/sitemap.xml",
+    sitemap: "https://money.plentyer.com/sitemap.xml",
   };
 }
