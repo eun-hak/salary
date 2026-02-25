@@ -1,4 +1,6 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 import {
   salaryData,
   formatNumber,
@@ -13,15 +15,24 @@ const SUMMARY_AMOUNTS = new Set([
 ]);
 
 function TableRow({ row }: { row: SalaryRow }) {
+  const router = useRouter();
+
   return (
-    <tr className="border-b border-gray-100 hover:bg-blue-50/50 transition-colors">
-      <td className="px-3 py-3 whitespace-nowrap">
-        <Link
-          href={`/salary/${row.amount}`}
-          className="text-primary-700 font-semibold hover:underline"
-        >
-          {formatSalaryLabel(row.amount)}
-        </Link>
+    <tr
+      role="button"
+      tabIndex={0}
+      aria-label={`연봉 ${formatSalaryLabel(row.amount)} 상세 보기`}
+      onClick={() => router.push(`/salary/${row.amount}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/salary/${row.amount}`);
+        }
+      }}
+      className="border-b border-gray-100 hover:bg-blue-50/50 transition-colors cursor-pointer"
+    >
+      <td className="px-3 py-3 whitespace-nowrap text-primary-700 font-semibold">
+        {formatSalaryLabel(row.amount)}
       </td>
       <td className="px-3 py-3 whitespace-nowrap text-primary-700 font-bold">
         {formatNumber(row.takeHome)}원
