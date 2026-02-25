@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
   },
   verification: {
-    google: "YOUR_GOOGLE_VERIFICATION_CODE",
+    google: "nGLC6wqeingyxdWpDtTR9DKlBw7TNDT9A8_l8PrHWt0",
   },
 };
 
@@ -68,6 +68,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        <meta
+          name="naver-site-verification"
+          content="8f6b5d88eb52da1b6362ae4efdef135627b53209"
+        />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link
           rel="preconnect"
@@ -77,6 +81,20 @@ export default function RootLayout({
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-GKLE187WJ1"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-GKLE187WJ1');
+            `,
+          }}
         />
         <script
           async
