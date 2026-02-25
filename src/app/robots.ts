@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://salary2026.kr/sitemap.xml",
+    sitemap: "https://salary.plentyer.com/sitemap.xml",
   };
 }

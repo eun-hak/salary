@@ -38,7 +38,7 @@ export async function generateMetadata({
     title: `연봉 ${label} 실수령액 - 2026년 세후 월급 약 ${takeHome}원`,
     description: `2026년 기준 연봉 ${label}의 월 실수령액은 ${takeHome}원입니다. 국민연금 ${formatNumber(row.pension)}원, 건강보험 ${formatNumber(row.health)}원, 소득세 ${formatNumber(row.incomeTax)}원 등 공제 내역과 실수령율 ${getTakeHomeRate(row)}%를 확인하세요.`,
     alternates: {
-      canonical: `https://salary2026.kr/salary/${amount}`,
+      canonical: `https://salary.plentyer.com/salary/${amount}`,
     },
     openGraph: {
       title: `연봉 ${label} 실수령액 - 월 ${takeHome}원 (2026년)`,
@@ -116,7 +116,7 @@ export default async function SalaryDetailPage({
     "@type": "WebPage",
     name: `연봉 ${label} 실수령액 - 2026년 기준`,
     description: `2026년 연봉 ${label} 세후 월 실수령액 ${formatNumber(row.takeHome)}원`,
-    url: `https://salary2026.kr/salary/${amount}`,
+    url: `https://salary.plentyer.com/salary/${amount}`,
     mainEntity: {
       "@type": "FinancialProduct",
       name: `연봉 ${label} 실수령액 계산`,

@@ -8,11 +8,17 @@ import {
   type SalaryRow,
 } from "@/lib/salary";
 
-const SUMMARY_AMOUNTS = new Set([
-  1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500,
-  7000, 7500, 8000, 8500, 9000, 9500, 10000, 11000, 12000, 13000, 14000,
-  15000,
-]);
+const ROWS_PER_SECTION = 30;
+
+function AdSlotRow({ index }: { index: number }) {
+  return (
+    <tr key={`ad-slot-${index}`}>
+      <td colSpan={9} className="align-top p-0">
+        <div className="h-[200px] md:h-[120px] w-full" data-ad-slot aria-hidden />
+      </td>
+    </tr>
+  );
+}
 
 function TableRow({ row }: { row: SalaryRow }) {
   const router = useRouter();
@@ -62,11 +68,7 @@ function TableRow({ row }: { row: SalaryRow }) {
   );
 }
 
-export default function SalaryTable({ showAll = false }: { showAll?: boolean }) {
-  const rows = showAll
-    ? salaryData
-    : salaryData.filter((row) => SUMMARY_AMOUNTS.has(row.amount));
-
+export default function SalaryTable() {
   return (
     <section id="table" className="max-w-5xl mx-auto px-4 py-12">
       <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -108,21 +110,26 @@ export default function SalaryTable({ showAll = false }: { showAll?: boolean }) 
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <TableRow key={row.amount} row={row} />
-              ))}
+              {salaryData.flatMap((row, index) => {
+                const elements: React.ReactNode[] = [];
+                if (index > 0 && index % ROWS_PER_SECTION === 0) {
+                  elements.push(
+                    <AdSlotRow key={`ad-${index}`} index={index / ROWS_PER_SECTION} />
+                  );
+                }
+                elements.push(<TableRow key={row.amount} row={row} />);
+                return elements;
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      {!showAll && (
-        <div className="text-center mt-6">
-          <p className="text-sm text-gray-500">
-            100만원 단위 상세 표는 각 연봉을 클릭하여 확인하세요
-          </p>
-        </div>
-      )}
+      <div className="text-center mt-6">
+        <p className="text-sm text-gray-500">
+          행을 클릭하면 해당 연봉의 상세 공제 내역을 확인할 수 있습니다
+        </p>
+      </div>
     </section>
   );
 }

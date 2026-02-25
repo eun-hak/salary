@@ -12,7 +12,7 @@ export default function Home() {
     name: "2026년 연봉 실수령액 계산기",
     description:
       "2026년 최신 4대보험 요율 반영. 연봉별 실수령액과 공제 내역을 계산합니다.",
-    url: "https://salary2026.kr",
+    url: "https://salary.plentyer.com",
     applicationCategory: "FinanceApplication",
     operatingSystem: "All",
     offers: {
