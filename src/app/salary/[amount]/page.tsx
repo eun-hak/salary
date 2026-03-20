@@ -4,12 +4,15 @@ import {
   salaryData,
   getSalaryByAmount,
   getAdjacentSalaries,
+  calculateSalary2025,
   formatNumber,
   formatSalaryLabel,
   getMonthlySalary,
   getTakeHomeRate,
   getDeductionRate,
   getAllAmounts,
+  FAMILY_COUNTS,
+  MEAL_AMOUNTS,
   type SalaryRow,
 } from "@/lib/salary";
 import Footer from "@/components/Footer";
@@ -34,15 +37,17 @@ export async function generateMetadata({
   const label = formatSalaryLabel(amount);
   const takeHome = formatNumber(row.takeHome);
 
+  const monthly = formatNumber(getMonthlySalary(amount));
+
   return {
-    title: `연봉 ${label} 실수령액 - 2026년 세후 월급 약 ${takeHome}원`,
-    description: `2026년 기준 연봉 ${label}의 월 실수령액은 ${takeHome}원입니다. 국민연금 ${formatNumber(row.pension)}원, 건강보험 ${formatNumber(row.health)}원, 소득세 ${formatNumber(row.incomeTax)}원 등 공제 내역과 실수령율 ${getTakeHomeRate(row)}%를 확인하세요.`,
+    title: `연봉 ${label} 실수령액 2026 - 세전 ${monthly}원 → 세후 ${takeHome}원`,
+    description: `2026년 연봉 ${label} 세전 월 ${monthly}원 → 세후 실수령액 ${takeHome}원. 국민연금 ${formatNumber(row.pension)}원·건강보험 ${formatNumber(row.health)}원·소득세 ${formatNumber(row.incomeTax)}원 공제 내역, 실수령율 ${getTakeHomeRate(row)}% 확인.`,
     alternates: {
       canonical: `https://money.plentyer.com/salary/${amount}`,
     },
     openGraph: {
-      title: `연봉 ${label} 실수령액 - 월 ${takeHome}원 (2026년)`,
-      description: `2026년 연봉 ${label} 세후 월급 ${takeHome}원. 공제 내역 상세 확인.`,
+      title: `연봉 ${label} 실수령액 2026 - 세후 월 ${takeHome}원`,
+      description: `세전 ${monthly}원 → 세후 ${takeHome}원. 국민연금·건강보험·소득세 공제 내역 상세.`,
     },
   };
 }
@@ -111,12 +116,32 @@ export default async function SalaryDetailPage({
 
   const maxDeduction = Math.max(...deductions.map((d) => d.value), 1);
 
+  const row2025 = calculateSalary2025(amount * 10000, 1, 0);
+  const diffVs2025 = row.takeHome - row2025.takeHome;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: `연봉 ${label} 실수령액 - 2026년 기준`,
     description: `2026년 연봉 ${label} 세후 월 실수령액 ${formatNumber(row.takeHome)}원`,
     url: `https://money.plentyer.com/salary/${amount}`,
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "홈",
+          item: "https://money.plentyer.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: `연봉 ${label} 실수령액`,
+          item: `https://money.plentyer.com/salary/${amount}`,
+        },
+      ],
+    },
     mainEntity: {
       "@type": "FinancialProduct",
       name: `연봉 ${label} 실수령액 계산`,
@@ -133,26 +158,18 @@ export default async function SalaryDetailPage({
 
       <header className="bg-gradient-to-br from-gray-900 via-gray-800 to-primary-900 text-white">
         <div className="max-w-5xl mx-auto px-4 py-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-white transition mb-4"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M10 12L6 8L10 4"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            전체 연봉 실수령액 표
-          </Link>
+          <nav className="text-xs text-gray-400 mb-4 flex items-center gap-1.5">
+            <Link href="/" className="hover:text-white transition">
+              연봉 실수령액 계산기
+            </Link>
+            <span>/</span>
+            <span>연봉 {label}</span>
+          </nav>
           <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
-            연봉 {label} 실수령액
+            연봉 {label} 실수령액 (2026년)
           </h1>
           <p className="text-gray-400 mt-2">
-            2026년 기준 · 부양가족 1명(본인) · 비과세 없음
+            2026년 기준 · 부양가족 1명(본인) · 비과세 없음 · 국민연금 4.75%·건강보험 3.595%
           </p>
         </div>
       </header>
@@ -349,6 +366,102 @@ export default async function SalaryDetailPage({
               연봉 {formatSalaryLabel(next.amount)} →
             </Link>
           )}
+        </div>
+
+        {/* 2025 vs 2026 비교 섹션 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+          <h2 className="font-bold text-gray-900 mb-4">
+            2025년 대비 2026년 실수령액 변화
+          </h2>
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="bg-gray-50 rounded-lg p-4 text-center">
+              <p className="text-xs text-gray-500 mb-1">2025년 월 실수령액</p>
+              <p className="font-bold text-gray-700">{formatNumber(row2025.takeHome)}원</p>
+            </div>
+            <div className="bg-primary-50 rounded-lg p-4 text-center">
+              <p className="text-xs text-gray-500 mb-1">2026년 월 실수령액</p>
+              <p className="font-bold text-primary-700">{formatNumber(row.takeHome)}원</p>
+            </div>
+            <div className={`rounded-lg p-4 text-center ${diffVs2025 < 0 ? "bg-red-50" : "bg-emerald-50"}`}>
+              <p className="text-xs text-gray-500 mb-1">전년 대비</p>
+              <p className={`font-bold ${diffVs2025 < 0 ? "text-red-600" : "text-emerald-600"}`}>
+                {diffVs2025 >= 0 ? "+" : ""}{formatNumber(diffVs2025)}원
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            국민연금 4.5%→4.75%, 건강보험 3.545%→3.595% 인상으로 월 공제액이 증가하였습니다.{" "}
+            <Link href="/compare" className="text-primary-600 hover:underline">
+              2025 vs 2026 전체 비교 →
+            </Link>
+          </p>
+        </div>
+
+        {/* 조건별 실수령액 링크 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-bold text-gray-900 mb-3">부양가족 수별 비교</h2>
+            <p className="text-xs text-gray-500 mb-3">부양가족 수에 따라 소득세가 달라집니다</p>
+            <div className="space-y-2">
+              {FAMILY_COUNTS.map((count) => (
+                <Link
+                  key={count}
+                  href={`/family/${count}`}
+                  className="flex justify-between items-center py-1.5 text-sm hover:text-primary-600 transition group"
+                >
+                  <span className="text-gray-700 group-hover:text-primary-600">
+                    부양가족 {count}명 기준
+                  </span>
+                  <span className="text-primary-600 text-xs">→</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-bold text-gray-900 mb-3">비과세 식대별 비교</h2>
+            <p className="text-xs text-gray-500 mb-3">식대 비과세 적용 시 4대보험+소득세 절감</p>
+            <div className="space-y-2">
+              {MEAL_AMOUNTS.map((meal) => {
+                const labels: Record<number, string> = {
+                  0: "비과세 없음 (기본)",
+                  100000: "비과세 식대 월 10만원",
+                  200000: "비과세 식대 월 20만원",
+                };
+                return (
+                  <Link
+                    key={meal}
+                    href={`/meal/${meal}`}
+                    className="flex justify-between items-center py-1.5 text-sm hover:text-primary-600 transition group"
+                  >
+                    <span className="text-gray-700 group-hover:text-primary-600">
+                      {labels[meal]}
+                    </span>
+                    <span className="text-primary-600 text-xs">→</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* 관련 가이드 */}
+        <div className="bg-gray-50 rounded-xl p-6">
+          <h2 className="font-bold text-gray-900 mb-3">관련 가이드</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <Link href="/guide/insurance-rates" className="flex items-center gap-2 text-primary-600 hover:text-primary-700">
+              <span>→</span> 2026 4대보험 요율 완벽 가이드
+            </Link>
+            <Link href="/guide/income-tax" className="flex items-center gap-2 text-primary-600 hover:text-primary-700">
+              <span>→</span> 근로소득세 계산 방법 가이드
+            </Link>
+            <Link href="/guide/non-taxable-meal" className="flex items-center gap-2 text-primary-600 hover:text-primary-700">
+              <span>→</span> 비과세 식대 활용 가이드
+            </Link>
+            <Link href="/guide/how-to-increase" className="flex items-center gap-2 text-primary-600 hover:text-primary-700">
+              <span>→</span> 실수령액 높이는 5가지 방법
+            </Link>
+          </div>
         </div>
       </main>
 

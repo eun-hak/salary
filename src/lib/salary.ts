@@ -205,6 +205,112 @@ export function getDeductionRate(row: SalaryRow): number {
   return Math.round((row.totalDeduction / monthly) * 1000) / 10;
 }
 
+// ─── 2025년 요율 상수 ────────────────────────────────────────────────────────
+export const RATES_2025 = {
+  year: 2025,
+  pension: 0.045,
+  pensionCapMonthly: 265500,
+  pensionCapSalary: 5_900_000,
+  health: 0.03545,
+  longCareRatio: 0.1295,
+  employment: 0.009,
+} as const;
+
+// ─── 롱테일 키워드 페이지용 공통 상수 ────────────────────────────────────────
+export const KEY_SALARY_AMOUNTS = [
+  2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 8000,
+  9000, 10000, 12000, 15000,
+];
+export const FAMILY_COUNTS = [1, 2, 3, 4, 5];
+export const MEAL_AMOUNTS = [0, 100000, 200000];
+
+// ─── 2025년 실수령액 계산 ─────────────────────────────────────────────────────
+function calc2025IncomeTax(
+  annualSalary: number,
+  dependents: number,
+  nonTaxableMonthly: number,
+): number {
+  const r = RATES_2025;
+  const annualNonTaxable = nonTaxableMonthly * 12;
+  const annualTaxable = annualSalary - annualNonTaxable;
+  if (annualTaxable <= 0) return 0;
+
+  let empDeduction: number;
+  if (annualTaxable <= 5_000_000) empDeduction = annualTaxable * 0.7;
+  else if (annualTaxable <= 15_000_000)
+    empDeduction = 3_500_000 + (annualTaxable - 5_000_000) * 0.4;
+  else if (annualTaxable <= 45_000_000)
+    empDeduction = 7_500_000 + (annualTaxable - 15_000_000) * 0.15;
+  else if (annualTaxable <= 100_000_000)
+    empDeduction = 12_000_000 + (annualTaxable - 45_000_000) * 0.05;
+  else empDeduction = 14_750_000 + (annualTaxable - 100_000_000) * 0.02;
+
+  const personalDeduction = dependents * 1_500_000;
+  const mSalary = Math.round(annualTaxable / 12);
+  const mPension = Math.min(Math.round(mSalary * r.pension), r.pensionCapMonthly);
+  const mHealth = Math.round(mSalary * r.health);
+  const mLongCare = Math.round(mHealth * r.longCareRatio);
+  const mEmployment = Math.round(mSalary * r.employment);
+  const annualInsurance = (mPension + mHealth + mLongCare + mEmployment) * 12;
+  const standardDeduction = 1_300_000;
+  const taxableIncome = Math.max(
+    0,
+    annualTaxable - empDeduction - personalDeduction - annualInsurance - standardDeduction,
+  );
+
+  let tax: number;
+  if (taxableIncome <= 14_000_000) tax = taxableIncome * 0.06;
+  else if (taxableIncome <= 50_000_000) tax = 840_000 + (taxableIncome - 14_000_000) * 0.15;
+  else if (taxableIncome <= 88_000_000) tax = 6_240_000 + (taxableIncome - 50_000_000) * 0.24;
+  else if (taxableIncome <= 150_000_000) tax = 15_360_000 + (taxableIncome - 88_000_000) * 0.35;
+  else if (taxableIncome <= 300_000_000)
+    tax = 37_060_000 + (taxableIncome - 150_000_000) * 0.38;
+  else if (taxableIncome <= 500_000_000)
+    tax = 94_060_000 + (taxableIncome - 300_000_000) * 0.4;
+  else if (taxableIncome <= 1_000_000_000)
+    tax = 174_060_000 + (taxableIncome - 500_000_000) * 0.42;
+  else tax = 384_060_000 + (taxableIncome - 1_000_000_000) * 0.45;
+
+  let credit = tax <= 1_300_000 ? tax * 0.55 : 715_000 + (tax - 1_300_000) * 0.3;
+  let creditLimit: number;
+  if (annualSalary <= 33_000_000) creditLimit = 740_000;
+  else if (annualSalary <= 70_000_000) creditLimit = 660_000;
+  else if (annualSalary <= 120_000_000) creditLimit = 500_000;
+  else creditLimit = 200_000;
+  credit = Math.min(credit, creditLimit);
+
+  return Math.round(Math.max(0, Math.round(tax - credit)) / 12);
+}
+
+export function calculateSalary2025(
+  annualSalaryWon: number,
+  dependents = 1,
+  nonTaxableMonthly = 0,
+): SalaryRow {
+  const r = RATES_2025;
+  const monthlySalary = Math.round(annualSalaryWon / 12);
+  const taxableMonthly = Math.max(0, monthlySalary - nonTaxableMonthly);
+  const pension = Math.min(Math.round(taxableMonthly * r.pension), r.pensionCapMonthly);
+  const health = Math.round(taxableMonthly * r.health);
+  const longCare = Math.round(health * r.longCareRatio);
+  const employment = Math.round(taxableMonthly * r.employment);
+  const incomeTax = calc2025IncomeTax(annualSalaryWon, dependents, nonTaxableMonthly);
+  const localTax = Math.round(incomeTax * 0.1);
+  const totalDeduction = pension + health + longCare + employment + incomeTax + localTax;
+  const takeHome = monthlySalary - totalDeduction;
+  return {
+    amount: Math.round(annualSalaryWon / 10000),
+    takeHome: Math.max(0, takeHome),
+    totalDeduction,
+    pension,
+    health,
+    longCare,
+    employment,
+    incomeTax: Math.max(0, incomeTax),
+    localTax: Math.max(0, localTax),
+  };
+}
+
 export function calculateSalary(
   annualSalaryWon: number,
   dependents: number = 1,

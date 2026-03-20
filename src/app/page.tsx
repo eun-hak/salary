@@ -2,7 +2,8 @@ import SalaryCalculator from "@/components/SalaryCalculator";
 import SalaryTable from "@/components/SalaryTable";
 import FAQ, { getFaqJsonLd } from "@/components/FAQ";
 import Footer from "@/components/Footer";
-import { RATES } from "@/lib/salary";
+import Link from "next/link";
+import { RATES, formatNumber, calculateSalary } from "@/lib/salary";
 
 export default function Home() {
   const faqJsonLd = getFaqJsonLd();
@@ -42,12 +43,12 @@ export default function Home() {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">
-            2026년 연봉 실수령액 계산기
+            2026 연봉 실수령액 표 & 계산기
           </h1>
           <p className="text-gray-300 text-base md:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
-            최신 4대보험 요율과 국세청 간이세액표를 반영하여
+            국민연금 4.75%·건강보험 3.595% 반영 · 간이세액표 기준
             <br className="hidden md:block" />
-            세후 월급, 공제 내역, 실수령율을 한 번에 확인하세요
+            연봉별 세전 세후 차이, 4대보험 공제 내역을 한눈에 확인하세요
           </p>
 
           <nav className="flex flex-wrap justify-center gap-3 text-sm">
@@ -106,6 +107,168 @@ export default function Home() {
                 "4대보험 근로자 부담분",
               ]}
             />
+          </div>
+        </section>
+
+        {/* 인기 연봉 상세 페이지 링크 */}
+        <section className="max-w-5xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            인기 연봉 실수령액 바로 확인
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            자신의 연봉을 클릭하면 공제 내역 상세 페이지로 이동합니다
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000].map(
+              (amount) => {
+                const row = calculateSalary(amount * 10000, 1, 0);
+                return (
+                  <Link
+                    key={amount}
+                    href={`/salary/${amount}`}
+                    className="bg-white border border-gray-200 rounded-xl p-4 hover:border-primary-300 hover:shadow-md transition group"
+                  >
+                    <p className="text-xs text-gray-500 mb-1">
+                      연봉 {formatNumber(amount)}만원
+                    </p>
+                    <p className="font-bold text-primary-700 text-base group-hover:text-primary-800">
+                      월 {formatNumber(row.takeHome)}원
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      공제 {formatNumber(row.totalDeduction)}원
+                    </p>
+                  </Link>
+                );
+              },
+            )}
+          </div>
+        </section>
+
+        {/* 조건별 계산 링크 */}
+        <section className="max-w-5xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            조건별 실수령액 계산
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            부양가족 수, 비과세 식대에 따라 실수령액이 달라집니다
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 부양가족 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h3 className="font-bold text-gray-900 mb-1">
+                부양가족별 실수령액
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">
+                부양가족 수에 따라 소득세가 달라집니다
+              </p>
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <Link
+                    key={n}
+                    href={`/family/${n}`}
+                    className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 text-sm transition group"
+                  >
+                    <span className="text-gray-700">
+                      부양가족 {n}명 기준 실수령액 표
+                    </span>
+                    <span className="text-primary-600 text-xs group-hover:translate-x-0.5 transition-transform">
+                      →
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+            {/* 비과세 식대 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h3 className="font-bold text-gray-900 mb-1">
+                비과세 식대별 실수령액
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">
+                비과세 식대 적용 시 4대보험+소득세 절감
+              </p>
+              <div className="space-y-2">
+                {[
+                  { amount: 0, label: "비과세 없음 기준" },
+                  { amount: 100000, label: "비과세 식대 월 10만원" },
+                  { amount: 200000, label: "비과세 식대 월 20만원" },
+                ].map((item) => (
+                  <Link
+                    key={item.amount}
+                    href={`/meal/${item.amount}`}
+                    className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-50 text-sm transition group"
+                  >
+                    <span className="text-gray-700">{item.label}</span>
+                    <span className="text-primary-600 text-xs group-hover:translate-x-0.5 transition-transform">
+                      →
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 비교 & 가이드 링크 */}
+        <section className="max-w-5xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            비교 & 심화 가이드
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            실수령액을 더 자세히 이해하고 늘리는 방법을 알아보세요
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              {
+                href: "/compare",
+                icon: "📊",
+                title: "2025 vs 2026 비교",
+                desc: "국민연금·건강보험 인상으로 실수령액이 얼마나 줄었나",
+              },
+              {
+                href: "/guide/insurance-rates",
+                icon: "🔢",
+                title: "4대보험 요율 가이드",
+                desc: "국민연금·건강보험·장기요양·고용보험 요율 완벽 설명",
+              },
+              {
+                href: "/guide/income-tax",
+                icon: "📋",
+                title: "소득세 계산 방법",
+                desc: "근로소득공제·인적공제·누진세율 단계별 이해",
+              },
+              {
+                href: "/guide/non-taxable-meal",
+                icon: "🍱",
+                title: "비과세 식대 가이드",
+                desc: "식대 20만원 비과세로 연 24~36만원 절세하는 법",
+              },
+              {
+                href: "/guide/dependents",
+                icon: "👨‍👩‍👧",
+                title: "부양가족 공제 가이드",
+                desc: "인적공제 150만원으로 소득세를 줄이는 방법",
+              },
+              {
+                href: "/guide/how-to-increase",
+                icon: "💰",
+                title: "실수령액 높이는 법",
+                desc: "합법적으로 월급을 늘리는 5가지 실전 방법",
+              },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="bg-white border border-gray-200 rounded-xl p-5 hover:border-primary-300 hover:shadow-md transition"
+              >
+                <div className="text-2xl mb-2">{item.icon}</div>
+                <h3 className="font-bold text-gray-900 mb-1 text-sm">
+                  {item.title}
+                </h3>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  {item.desc}
+                </p>
+              </Link>
+            ))}
           </div>
         </section>
 
